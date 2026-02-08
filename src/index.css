@@ -2,95 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Aviation Weather Simulation - Dark Cockpit Theme */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Dark cockpit background palette */
+    --background: 220 25% 8%;
+    --foreground: 200 20% 92%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 220 25% 11%;
+    --card-foreground: 200 20% 92%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 220 25% 13%;
+    --popover-foreground: 200 20% 92%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Aviation cyan as primary */
+    --primary: 190 95% 50%;
+    --primary-foreground: 220 25% 8%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Muted steel blue */
+    --secondary: 215 30% 20%;
+    --secondary-foreground: 200 20% 85%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 20% 16%;
+    --muted-foreground: 215 15% 55%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent - electric blue */
+    --accent: 200 100% 55%;
+    --accent-foreground: 220 25% 8%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Warning colors */
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 215 25% 18%;
+    --input: 215 25% 18%;
+    --ring: 190 95% 50%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Custom aviation tokens */
+    --weather-safe: 145 70% 45%;
+    --weather-caution: 45 95% 55%;
+    --weather-critical: 0 80% 55%;
+    --weather-storm: 270 70% 55%;
+    
+    --flight-path: 190 100% 60%;
+    --flight-reroute: 35 100% 55%;
+    --flight-grounded: 0 80% 50%;
+    
+    --radar-glow: 190 100% 50%;
+    --radar-sweep: 190 100% 60%;
+    
+    --atc-alert: 45 100% 55%;
+    --atc-warning: 0 85% 55%;
+    --atc-info: 200 100% 60%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    /* Gradients */
+    --gradient-cockpit: linear-gradient(180deg, hsl(220 25% 12%) 0%, hsl(220 25% 6%) 100%);
+    --gradient-radar: radial-gradient(circle, hsl(190 100% 50% / 0.1) 0%, transparent 70%);
+    --gradient-danger: linear-gradient(135deg, hsl(0 80% 50% / 0.2) 0%, hsl(0 80% 30% / 0.1) 100%);
+    
+    /* Shadows */
+    --shadow-glow: 0 0 20px hsl(190 100% 50% / 0.3);
+    --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.4);
+    --shadow-alert: 0 0 30px hsl(45 100% 55% / 0.4);
 
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 220 25% 10%;
+    --sidebar-foreground: 200 20% 85%;
+    --sidebar-primary: 190 95% 50%;
+    --sidebar-primary-foreground: 220 25% 8%;
+    --sidebar-accent: 215 30% 18%;
+    --sidebar-accent-foreground: 200 20% 92%;
+    --sidebar-border: 215 25% 18%;
+    --sidebar-ring: 190 95% 50%;
   }
 }
 
@@ -100,6 +86,168 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
   }
+
+  /* Monospace for data/codes */
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer components {
+  /* Radar sweep animation */
+  @keyframes radar-sweep {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 1;
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.5);
+    }
+    50% {
+      opacity: 0.7;
+      box-shadow: 0 0 40px hsl(var(--primary) / 0.8);
+    }
+  }
+
+  @keyframes alert-flash {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.6;
+    }
+  }
+
+  @keyframes slide-in {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .radar-sweep {
+    animation: radar-sweep 4s linear infinite;
+  }
+
+  .pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .alert-flash {
+    animation: alert-flash 1s ease-in-out infinite;
+  }
+
+  .slide-in {
+    animation: slide-in 0.3s ease-out;
+  }
+
+  /* Glass panel effect */
+  .glass-panel {
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  /* Weather zone colors */
+  .weather-safe {
+    background: hsl(var(--weather-safe) / 0.3);
+    border-color: hsl(var(--weather-safe));
+  }
+
+  .weather-caution {
+    background: hsl(var(--weather-caution) / 0.3);
+    border-color: hsl(var(--weather-caution));
+  }
+
+  .weather-critical {
+    background: hsl(var(--weather-critical) / 0.3);
+    border-color: hsl(var(--weather-critical));
+  }
+
+  /* Status indicators */
+  .status-dot {
+    @apply w-2 h-2 rounded-full;
+  }
+
+  .status-active {
+    @apply bg-[hsl(var(--weather-safe))];
+    box-shadow: 0 0 8px hsl(var(--weather-safe));
+  }
+
+  .status-warning {
+    @apply bg-[hsl(var(--weather-caution))];
+    box-shadow: 0 0 8px hsl(var(--weather-caution));
+  }
+
+  .status-critical {
+    @apply bg-[hsl(var(--weather-critical))];
+    box-shadow: 0 0 8px hsl(var(--weather-critical));
+  }
+}
+
+/* Leaflet map styling */
+.leaflet-container {
+  background: hsl(220 25% 6%) !important;
+  font-family: 'Inter', sans-serif;
+}
+
+.leaflet-tile-pane {
+  filter: saturate(0.3) brightness(0.4) contrast(1.2);
+}
+
+.leaflet-control-zoom {
+  border: none !important;
+}
+
+.leaflet-control-zoom a {
+  background: hsl(220 25% 15%) !important;
+  color: hsl(200 20% 85%) !important;
+  border: 1px solid hsl(215 25% 25%) !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: hsl(220 25% 20%) !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: hsl(220 25% 12%);
+  color: hsl(200 20% 92%);
+  border-radius: 8px;
+  box-shadow: 0 4px 24px hsl(0 0% 0% / 0.5);
+}
+
+.leaflet-popup-tip {
+  background: hsl(220 25% 12%);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(220 25% 10%);
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(215 25% 25%);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(215 25% 35%);
 }
