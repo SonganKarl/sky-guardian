@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, Circle, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Flight, WeatherZone, Airport } from '@/types/simulation';
@@ -77,6 +77,134 @@ const getWeatherZoneColor = (severity: string) => {
   }
 };
 
+// Weather zone component
+function WeatherZoneLayer({ zone }: { zone: WeatherZone }) {
+  const colors = getWeatherZoneColor(zone.severity);
+  return (
+    <Circle
+      center={[zone.center.lat, zone.center.lng]}
+      radius={zone.radius * 1000}
+      pathOptions={{
+        color: colors.stroke,
+        fillColor: colors.fill,
+        fillOpacity: 0.25,
+        weight: 2,
+        dashArray: zone.severity === 'critical' ? '5, 5' : undefined,
+      }}
+    >
+      <Popup>
+        <div className="text-sm p-2">
+          <div className="font-bold capitalize">{zone.type} Zone</div>
+          <div className="text-gray-600">Severity: {zone.severity}</div>
+          {zone.windSpeed && <div>Wind: {zone.windSpeed} kts</div>}
+          {zone.visibility && <div>Visibility: {zone.visibility} mi</div>}
+        </div>
+      </Popup>
+    </Circle>
+  );
+}
+
+// Flight path component
+function FlightPathLayer({ flight }: { flight: Flight }) {
+  if (!flight.currentPath || flight.currentPath.length < 2) return null;
+  
+  const pathColor = flight.rerouted ? '#ff9500' : '#00d4ff40';
+  const positions: [number, number][] = flight.currentPath.map(p => [p.lat, p.lng]);
+  
+  return (
+    <Polyline
+      positions={positions}
+      pathOptions={{
+        color: pathColor,
+        weight: flight.rerouted ? 2 : 1,
+        dashArray: flight.rerouted ? '10, 5' : '5, 10',
+        opacity: 0.6,
+      }}
+    />
+  );
+}
+
+// Airport marker component
+function AirportMarker({ airport }: { airport: Airport }) {
+  const icon = useMemo(() => createAirportIcon(airport.status), [airport.status]);
+  
+  return (
+    <Marker
+      position={[airport.position.lat, airport.position.lng]}
+      icon={icon}
+    >
+      <Popup>
+        <div className="text-sm p-2 min-w-[150px]">
+          <div className="font-mono font-bold" style={{ color: '#00d4ff' }}>{airport.code}</div>
+          <div className="text-xs">{airport.name}</div>
+          <div className={`mt-2 text-xs font-medium capitalize`} style={{
+            color: airport.status === 'open' ? '#22c55e' :
+                   airport.status === 'delayed' ? '#eab308' : '#ef4444'
+          }}>
+            Status: {airport.status}
+          </div>
+          {airport.closureReason && (
+            <div className="text-xs text-gray-500 mt-1">{airport.closureReason}</div>
+          )}
+          {airport.delayMinutes && airport.delayMinutes > 0 && (
+            <div className="text-xs mt-1" style={{ color: '#eab308' }}>Delay: {airport.delayMinutes} min</div>
+          )}
+        </div>
+      </Popup>
+    </Marker>
+  );
+}
+
+// Flight marker component
+function FlightMarker({ flight }: { flight: Flight }) {
+  const icon = useMemo(() => createAircraftIcon(flight.status, flight.heading), [flight.status, flight.heading]);
+  
+  const statusColor = flight.status === 'normal' ? '#22c55e' :
+                      flight.status === 'rerouting' ? '#ff9500' :
+                      flight.status === 'delayed' ? '#eab308' : '#ef4444';
+  
+  return (
+    <Marker
+      position={[flight.position.lat, flight.position.lng]}
+      icon={icon}
+    >
+      <Popup>
+        <div className="text-sm p-2 min-w-[180px]">
+          <div className="font-mono font-bold text-lg" style={{ color: '#00d4ff' }}>{flight.callsign}</div>
+          <div className="grid grid-cols-2 gap-2 mt-2 text-xs">
+            <div>
+              <span className="text-gray-500">Route:</span>
+              <div className="font-mono">{flight.origin} → {flight.destination}</div>
+            </div>
+            <div>
+              <span className="text-gray-500">Altitude:</span>
+              <div className="font-mono">{(flight.altitude / 1000).toFixed(1)}k ft</div>
+            </div>
+            <div>
+              <span className="text-gray-500">Speed:</span>
+              <div className="font-mono">{flight.speed} kts</div>
+            </div>
+            <div>
+              <span className="text-gray-500">Heading:</span>
+              <div className="font-mono">{flight.heading}°</div>
+            </div>
+          </div>
+          <div 
+            className="mt-2 px-2 py-1 rounded text-xs font-medium text-center capitalize"
+            style={{ 
+              backgroundColor: `${statusColor}20`,
+              color: statusColor
+            }}
+          >
+            {flight.status}
+            {flight.delayMinutes && flight.delayMinutes > 0 && ` (+${flight.delayMinutes}min)`}
+          </div>
+        </div>
+      </Popup>
+    </Marker>
+  );
+}
+
 export function FlightMap({ flights, weatherZones, airports, center }: FlightMapProps) {
   return (
     <div className="relative w-full h-full rounded-lg overflow-hidden border border-border">
@@ -85,6 +213,7 @@ export function FlightMap({ flights, weatherZones, airports, center }: FlightMap
         zoom={5}
         className="w-full h-full"
         zoomControl={false}
+        scrollWheelZoom={true}
       >
         <TileLayer
           attribution='&copy; <a href="https://carto.com/">CARTO</a>'
@@ -93,127 +222,25 @@ export function FlightMap({ flights, weatherZones, airports, center }: FlightMap
         
         <MapUpdater center={center} />
 
-        {/* Weather zones */}
-        {weatherZones.map(zone => {
-          const colors = getWeatherZoneColor(zone.severity);
-          return (
-            <Circle
-              key={zone.id}
-              center={[zone.center.lat, zone.center.lng]}
-              radius={zone.radius * 1000} // Convert km to meters
-              pathOptions={{
-                color: colors.stroke,
-                fillColor: colors.fill,
-                fillOpacity: 0.25,
-                weight: 2,
-                dashArray: zone.severity === 'critical' ? '5, 5' : undefined,
-              }}
-            >
-              <Popup>
-                <div className="text-sm p-2">
-                  <div className="font-bold text-foreground capitalize">{zone.type} Zone</div>
-                  <div className="text-muted-foreground">Severity: {zone.severity}</div>
-                  {zone.windSpeed && <div>Wind: {zone.windSpeed} kts</div>}
-                  {zone.visibility && <div>Visibility: {zone.visibility} mi</div>}
-                </div>
-              </Popup>
-            </Circle>
-          );
-        })}
-
-        {/* Flight paths */}
-        {flights.map(flight => {
-          if (!flight.currentPath || flight.currentPath.length < 2) return null;
-          
-          const pathColor = flight.rerouted ? '#ff9500' : '#00d4ff40';
-          
-          return (
-            <Polyline
-              key={`path-${flight.id}`}
-              positions={flight.currentPath.map(p => [p.lat, p.lng] as [number, number])}
-              pathOptions={{
-                color: pathColor,
-                weight: flight.rerouted ? 2 : 1,
-                dashArray: flight.rerouted ? '10, 5' : '5, 10',
-                opacity: 0.6,
-              }}
-            />
-          );
-        })}
-
-        {/* Airports */}
-        {airports.map(airport => (
-          <Marker
-            key={airport.code}
-            position={[airport.position.lat, airport.position.lng]}
-            icon={createAirportIcon(airport.status)}
-          >
-            <Popup>
-              <div className="text-sm p-2 min-w-[150px]">
-                <div className="font-mono font-bold text-primary">{airport.code}</div>
-                <div className="text-foreground text-xs">{airport.name}</div>
-                <div className={`mt-2 text-xs font-medium capitalize ${
-                  airport.status === 'open' ? 'text-weather-safe' :
-                  airport.status === 'delayed' ? 'text-weather-caution' : 'text-weather-critical'
-                }`}>
-                  Status: {airport.status}
-                </div>
-                {airport.closureReason && (
-                  <div className="text-xs text-muted-foreground mt-1">{airport.closureReason}</div>
-                )}
-                {airport.delayMinutes && airport.delayMinutes > 0 && (
-                  <div className="text-xs text-weather-caution mt-1">Delay: {airport.delayMinutes} min</div>
-                )}
-              </div>
-            </Popup>
-          </Marker>
+        {weatherZones.map(zone => (
+          <WeatherZoneLayer key={zone.id} zone={zone} />
         ))}
 
-        {/* Flights */}
         {flights.map(flight => (
-          <Marker
-            key={flight.id}
-            position={[flight.position.lat, flight.position.lng]}
-            icon={createAircraftIcon(flight.status, flight.heading)}
-          >
-            <Popup>
-              <div className="text-sm p-2 min-w-[180px]">
-                <div className="font-mono font-bold text-primary text-lg">{flight.callsign}</div>
-                <div className="grid grid-cols-2 gap-2 mt-2 text-xs">
-                  <div>
-                    <span className="text-muted-foreground">Route:</span>
-                    <div className="font-mono">{flight.origin} → {flight.destination}</div>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Altitude:</span>
-                    <div className="font-mono">{(flight.altitude / 1000).toFixed(1)}k ft</div>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Speed:</span>
-                    <div className="font-mono">{flight.speed} kts</div>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Heading:</span>
-                    <div className="font-mono">{flight.heading}°</div>
-                  </div>
-                </div>
-                <div className={`mt-2 px-2 py-1 rounded text-xs font-medium text-center capitalize ${
-                  flight.status === 'normal' ? 'bg-weather-safe/20 text-weather-safe' :
-                  flight.status === 'rerouting' ? 'bg-flight-reroute/20 text-flight-reroute' :
-                  flight.status === 'delayed' ? 'bg-weather-caution/20 text-weather-caution' :
-                  'bg-weather-critical/20 text-weather-critical'
-                }`}>
-                  {flight.status}
-                  {flight.delayMinutes && flight.delayMinutes > 0 && ` (+${flight.delayMinutes}min)`}
-                </div>
-              </div>
-            </Popup>
-          </Marker>
+          <FlightPathLayer key={`path-${flight.id}`} flight={flight} />
+        ))}
+
+        {airports.map(airport => (
+          <AirportMarker key={airport.code} airport={airport} />
+        ))}
+
+        {flights.map(flight => (
+          <FlightMarker key={flight.id} flight={flight} />
         ))}
       </MapContainer>
 
       {/* Map overlay legend */}
-      <div className="absolute bottom-4 left-4 glass-panel p-3 rounded-lg text-xs space-y-2">
+      <div className="absolute bottom-4 left-4 glass-panel p-3 rounded-lg text-xs space-y-2 z-[1000]">
         <div className="font-medium text-foreground mb-2">Legend</div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-weather-safe" />
