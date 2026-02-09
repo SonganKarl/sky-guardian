@@ -1,19 +1,21 @@
 import { Airport, Flight, Position, WeatherZone, WeatherScenario, WeatherSeverity } from '@/types/simulation';
 
+// Papua New Guinea Airports
 export const AIRPORTS: Airport[] = [
-  { code: 'JFK', name: 'John F. Kennedy International', position: { lat: 40.6413, lng: -73.7781 }, status: 'open' },
-  { code: 'LAX', name: 'Los Angeles International', position: { lat: 33.9425, lng: -118.4081 }, status: 'open' },
-  { code: 'ORD', name: "O'Hare International", position: { lat: 41.9742, lng: -87.9073 }, status: 'open' },
-  { code: 'DFW', name: 'Dallas/Fort Worth International', position: { lat: 32.8998, lng: -97.0403 }, status: 'open' },
-  { code: 'DEN', name: 'Denver International', position: { lat: 39.8561, lng: -104.6737 }, status: 'open' },
-  { code: 'ATL', name: 'Hartsfield-Jackson Atlanta', position: { lat: 33.6407, lng: -84.4277 }, status: 'open' },
-  { code: 'SFO', name: 'San Francisco International', position: { lat: 37.6213, lng: -122.379 }, status: 'open' },
-  { code: 'MIA', name: 'Miami International', position: { lat: 25.7959, lng: -80.2870 }, status: 'open' },
-  { code: 'SEA', name: 'Seattle-Tacoma International', position: { lat: 47.4502, lng: -122.3088 }, status: 'open' },
-  { code: 'BOS', name: 'Boston Logan International', position: { lat: 42.3656, lng: -71.0096 }, status: 'open' },
+  { code: 'POM', name: 'Jacksons International Airport (Port Moresby)', position: { lat: -9.4434, lng: 147.2200 }, status: 'open' },
+  { code: 'LAE', name: 'Nadzab Airport (Lae)', position: { lat: -6.5698, lng: 146.7262 }, status: 'open' },
+  { code: 'RAB', name: 'Tokua Airport (Rabaul)', position: { lat: -4.3404, lng: 152.3800 }, status: 'open' },
+  { code: 'MAG', name: 'Madang Airport', position: { lat: -5.2071, lng: 145.7887 }, status: 'open' },
+  { code: 'GKA', name: 'Goroka Airport', position: { lat: -6.0817, lng: 145.3917 }, status: 'open' },
+  { code: 'WWK', name: 'Wewak Airport', position: { lat: -3.5838, lng: 143.6693 }, status: 'open' },
+  { code: 'HGU', name: 'Mount Hagen Airport', position: { lat: -5.8268, lng: 144.2959 }, status: 'open' },
+  { code: 'MXH', name: 'Moro Airport', position: { lat: -6.3633, lng: 143.2383 }, status: 'open' },
+  { code: 'TBG', name: 'Tabubil Airport', position: { lat: -5.2786, lng: 141.2258 }, status: 'open' },
+  { code: 'KVG', name: 'Kavieng Airport', position: { lat: -2.5794, lng: 150.8080 }, status: 'open' },
 ];
 
-const AIRLINE_CODES = ['AA', 'UA', 'DL', 'SW', 'JB', 'AS', 'NK', 'F9'];
+// PNG and regional airline codes
+const AIRLINE_CODES = ['PX', 'CG', 'TO', 'QF', 'NF', 'FJ', 'SB', 'IE'];
 
 function generateCallsign(): string {
   const airline = AIRLINE_CODES[Math.floor(Math.random() * AIRLINE_CODES.length)];

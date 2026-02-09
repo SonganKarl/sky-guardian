@@ -35,7 +35,7 @@ export function Header({ isRunning, selectedCity, scenario }: HeaderProps) {
               />
             )}
           </div>
-          <span className="font-semibold text-foreground">ATC Weather Simulator</span>
+          <span className="font-semibold text-foreground">PNG ATC Weather Simulator</span>
         </div>
         <div className="h-4 w-px bg-border" />
         <div className="flex items-center gap-2 text-sm">

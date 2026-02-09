@@ -23,7 +23,7 @@ const Index = () => {
 
   const mapCenter = useMemo(() => {
     const airport = AIRPORTS.find(a => a.code === state.selectedCity);
-    return airport?.position || { lat: 39.8283, lng: -98.5795 };
+    return airport?.position || { lat: -6.0, lng: 147.0 }; // Default to PNG center
   }, [state.selectedCity]);
 
   return (
