@@ -6,9 +6,17 @@ interface HeaderProps {
   isRunning: boolean;
   selectedCity: string;
   scenario: string;
+  useRealWeather?: boolean;
+  weatherSummary?: {
+    hasStorms: boolean;
+    hasRain: boolean;
+    hasFog: boolean;
+    hasStrongWinds: boolean;
+    totalAlerts: number;
+  };
 }
 
-export function Header({ isRunning, selectedCity, scenario }: HeaderProps) {
+export function Header({ isRunning, selectedCity, scenario, useRealWeather, weatherSummary }: HeaderProps) {
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
@@ -43,9 +51,19 @@ export function Header({ isRunning, selectedCity, scenario }: HeaderProps) {
           <span className="font-mono text-primary">{selectedCity}</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <span className="text-muted-foreground">Scenario:</span>
-          <span className="font-mono text-accent capitalize">{scenario}</span>
+          <span className="text-muted-foreground">Source:</span>
+          <span className={`font-mono ${useRealWeather ? 'text-weather-safe' : 'text-accent'}`}>
+            {useRealWeather ? 'LIVE' : scenario.toUpperCase()}
+          </span>
         </div>
+        {useRealWeather && weatherSummary && (
+          <div className="flex items-center gap-2 text-sm">
+            {weatherSummary.hasStorms && <span className="text-weather-critical">⚡ Storms</span>}
+            {weatherSummary.hasRain && !weatherSummary.hasStorms && <span className="text-weather-caution">🌧️ Rain</span>}
+            {weatherSummary.hasFog && <span className="text-weather-caution">🌫️ Fog</span>}
+            {weatherSummary.hasStrongWinds && <span className="text-weather-caution">💨 Wind</span>}
+          </div>
+        )}
       </div>
 
       {/* Right - Status */}

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Cloud, CloudRain, Wind, Eye, Plane, Play, RotateCcw } from 'lucide-react';
+import { Cloud, CloudRain, Wind, Eye, Plane, Play, RotateCcw, CloudSun, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -13,11 +13,14 @@ interface ControlPanelProps {
   severity: WeatherSeverity;
   flightCount: number;
   isRunning: boolean;
+  weatherLoading?: boolean;
+  useRealWeather?: boolean;
   onCityChange: (city: string) => void;
   onScenarioChange: (scenario: WeatherScenario) => void;
   onSeverityChange: (severity: WeatherSeverity) => void;
   onFlightCountChange: (count: number) => void;
   onRunSimulation: () => void;
+  onFetchRealWeather?: () => void;
   onClearAlerts: () => void;
 }
 
@@ -40,11 +43,14 @@ export function ControlPanel({
   severity,
   flightCount,
   isRunning,
+  weatherLoading = false,
+  useRealWeather = false,
   onCityChange,
   onScenarioChange,
   onSeverityChange,
   onFlightCountChange,
   onRunSimulation,
+  onFetchRealWeather,
   onClearAlerts,
 }: ControlPanelProps) {
   return (
@@ -66,6 +72,45 @@ export function ControlPanel({
 
       {/* Divider */}
       <div className="h-px bg-border" />
+
+      {/* Real Weather Button */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium text-foreground flex items-center gap-2">
+          <CloudSun className="w-4 h-4 text-primary" />
+          Live Weather Data
+        </Label>
+        <Button
+          onClick={onFetchRealWeather}
+          disabled={weatherLoading}
+          variant={useRealWeather ? "default" : "outline"}
+          className={`w-full gap-2 ${useRealWeather ? 'bg-primary hover:bg-primary/90' : 'border-primary/50 text-primary hover:bg-primary/10'}`}
+        >
+          {weatherLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Fetching Weather...
+            </>
+          ) : (
+            <>
+              <CloudSun className="w-4 h-4" />
+              {useRealWeather ? 'Refresh Real Weather' : 'Fetch Real Weather'}
+            </>
+          )}
+        </Button>
+        {useRealWeather && (
+          <p className="text-xs text-weather-safe flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-weather-safe animate-pulse" />
+            Using live OpenWeatherMap data
+          </p>
+        )}
+      </div>
+
+      {/* Divider with OR */}
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-px bg-border" />
+        <span className="text-xs text-muted-foreground">OR SIMULATE</span>
+        <div className="flex-1 h-px bg-border" />
+      </div>
 
       {/* Airport Selection */}
       <div className="space-y-3">
@@ -154,10 +199,11 @@ export function ControlPanel({
       <div className="space-y-3 mt-auto">
         <Button 
           onClick={onRunSimulation} 
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium gap-2"
+          className="w-full bg-secondary hover:bg-secondary/80 text-foreground font-medium gap-2 border border-border"
+          variant="outline"
         >
           <Play className="w-4 h-4" />
-          {isRunning ? 'Re-run Simulation' : 'Run Simulation'}
+          {isRunning && !useRealWeather ? 'Re-run Simulation' : 'Run Mock Simulation'}
         </Button>
         
         <Button 
@@ -173,9 +219,14 @@ export function ControlPanel({
       {/* Status */}
       <div className="p-3 rounded-lg bg-secondary/50 border border-border">
         <div className="flex items-center gap-2">
-          <div className={`status-dot ${isRunning ? 'status-active' : 'status-warning'}`} />
+          <div className={`status-dot ${isRunning ? (useRealWeather ? 'status-active' : 'status-warning') : 'status-warning'}`} />
           <span className="text-xs font-medium text-muted-foreground">
-            {isRunning ? 'Simulation Active' : 'Ready to Simulate'}
+            {isRunning 
+              ? useRealWeather 
+                ? 'Live Weather Active' 
+                : 'Mock Simulation Active'
+              : 'Ready to Simulate'
+            }
           </span>
         </div>
       </div>
