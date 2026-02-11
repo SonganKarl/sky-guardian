@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
-import { Cloud, CloudRain, Wind, Eye, Plane, Play, RotateCcw, CloudSun, Loader2 } from 'lucide-react';
+import { Cloud, CloudRain, Wind, Eye, Plane, Play, RotateCcw, CloudSun, Loader2, RefreshCw, Timer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { WeatherScenario, WeatherSeverity } from '@/types/simulation';
 import { AIRPORTS } from '@/data/mockData';
@@ -15,12 +16,17 @@ interface ControlPanelProps {
   isRunning: boolean;
   weatherLoading?: boolean;
   useRealWeather?: boolean;
+  autoRefresh?: boolean;
+  refreshInterval?: number;
+  lastRefresh?: Date | null;
   onCityChange: (city: string) => void;
   onScenarioChange: (scenario: WeatherScenario) => void;
   onSeverityChange: (severity: WeatherSeverity) => void;
   onFlightCountChange: (count: number) => void;
   onRunSimulation: () => void;
   onFetchRealWeather?: () => void;
+  onToggleAutoRefresh?: () => void;
+  onRefreshIntervalChange?: (minutes: number) => void;
   onClearAlerts: () => void;
 }
 
@@ -45,12 +51,17 @@ export function ControlPanel({
   isRunning,
   weatherLoading = false,
   useRealWeather = false,
+  autoRefresh = false,
+  refreshInterval = 5,
+  lastRefresh,
   onCityChange,
   onScenarioChange,
   onSeverityChange,
   onFlightCountChange,
   onRunSimulation,
   onFetchRealWeather,
+  onToggleAutoRefresh,
+  onRefreshIntervalChange,
   onClearAlerts,
 }: ControlPanelProps) {
   return (
@@ -102,6 +113,44 @@ export function ControlPanel({
             <span className="w-2 h-2 rounded-full bg-weather-safe animate-pulse" />
             Using live OpenWeatherMap data
           </p>
+        )}
+        {useRealWeather && (
+          <div className="space-y-3 mt-2 p-3 rounded-lg bg-secondary/50 border border-border">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                <RefreshCw className={`w-3.5 h-3.5 text-primary ${autoRefresh ? 'animate-spin' : ''}`} style={autoRefresh ? { animationDuration: '3s' } : {}} />
+                Auto-Refresh
+              </Label>
+              <Switch
+                checked={autoRefresh}
+                onCheckedChange={() => onToggleAutoRefresh?.()}
+              />
+            </div>
+            {autoRefresh && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Timer className="w-3 h-3" />
+                    Every
+                  </Label>
+                  <span className="text-xs font-mono text-primary">{refreshInterval} min</span>
+                </div>
+                <Slider
+                  value={[refreshInterval]}
+                  onValueChange={([v]) => onRefreshIntervalChange?.(v)}
+                  min={1}
+                  max={15}
+                  step={1}
+                  className="py-1"
+                />
+              </div>
+            )}
+            {lastRefresh && (
+              <p className="text-xs text-muted-foreground">
+                Last update: {lastRefresh.toLocaleTimeString()}
+              </p>
+            )}
+          </div>
         )}
       </div>
 
