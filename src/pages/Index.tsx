@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { ControlPanel } from '@/components/simulation/ControlPanel';
 import { FlightMap } from '@/components/simulation/FlightMap';
 import { AlertsPanel } from '@/components/simulation/AlertsPanel';
@@ -24,33 +24,63 @@ const Index = () => {
 
   const { loading: weatherLoading, fetchWeather, weatherData } = useWeatherApi();
   const [useRealWeather, setUseRealWeather] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [refreshInterval, setRefreshInterval] = useState(5); // minutes
+  const autoRefreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   const stats = useMemo(() => getStats(), [state.flights, state.airports]);
 
   const mapCenter = useMemo(() => {
     const airport = AIRPORTS.find(a => a.code === state.selectedCity);
-    return airport?.position || { lat: -6.0, lng: 147.0 }; // Default to PNG center
+    return airport?.position || { lat: -6.0, lng: 147.0 };
   }, [state.selectedCity]);
 
-  const handleFetchRealWeather = async () => {
+  const handleFetchRealWeather = useCallback(async (silent = false) => {
     const data = await fetchWeather();
     if (data) {
       setUseRealWeather(true);
+      setLastRefresh(new Date());
       runSimulationWithRealWeather(data.airports);
-      toast.success(`Loaded real weather for ${data.airports.length} airports`, {
-        description: data.summary.hasStorms 
-          ? '⚠️ Storm activity detected!' 
-          : data.summary.hasRain 
-            ? '🌧️ Rain in the region' 
-            : '☀️ Generally clear conditions',
-      });
-    } else {
+      if (!silent) {
+        toast.success(`Loaded real weather for ${data.airports.length} airports`, {
+          description: data.summary.hasStorms 
+            ? '⚠️ Storm activity detected!' 
+            : data.summary.hasRain 
+              ? '🌧️ Rain in the region' 
+              : '☀️ Generally clear conditions',
+        });
+      } else {
+        toast.info('Weather data auto-refreshed', { duration: 2000 });
+      }
+    } else if (!silent) {
       toast.error('Failed to fetch weather data');
     }
-  };
+  }, [fetchWeather, runSimulationWithRealWeather]);
+
+  // Auto-refresh effect
+  useEffect(() => {
+    if (autoRefreshTimerRef.current) {
+      clearInterval(autoRefreshTimerRef.current);
+      autoRefreshTimerRef.current = null;
+    }
+
+    if (autoRefresh && useRealWeather) {
+      autoRefreshTimerRef.current = setInterval(() => {
+        handleFetchRealWeather(true);
+      }, refreshInterval * 60 * 1000);
+    }
+
+    return () => {
+      if (autoRefreshTimerRef.current) {
+        clearInterval(autoRefreshTimerRef.current);
+      }
+    };
+  }, [autoRefresh, useRealWeather, refreshInterval, handleFetchRealWeather]);
 
   const handleRunSimulation = () => {
     setUseRealWeather(false);
+    setAutoRefresh(false);
     runSimulation();
   };
 
@@ -76,12 +106,17 @@ const Index = () => {
           isRunning={state.isRunning}
           weatherLoading={weatherLoading}
           useRealWeather={useRealWeather}
+          autoRefresh={autoRefresh}
+          refreshInterval={refreshInterval}
+          lastRefresh={lastRefresh}
           onCityChange={setSelectedCity}
           onScenarioChange={setScenario}
           onSeverityChange={setSeverity}
           onFlightCountChange={setFlightCount}
           onRunSimulation={handleRunSimulation}
-          onFetchRealWeather={handleFetchRealWeather}
+          onFetchRealWeather={() => handleFetchRealWeather(false)}
+          onToggleAutoRefresh={() => setAutoRefresh(prev => !prev)}
+          onRefreshIntervalChange={setRefreshInterval}
           onClearAlerts={clearAlerts}
         />
 
